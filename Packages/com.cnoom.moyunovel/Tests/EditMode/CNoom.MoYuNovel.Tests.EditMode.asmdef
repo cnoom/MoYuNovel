@@ -1,0 +1,25 @@
+{
+    "name": "CNoom.MoYuNovel.Tests.EditMode",
+    "rootNamespace": "CNoom.MoYuNovel.Tests",
+    "references": [
+        "CNoom.MoYuNovel.Runtime",
+        "CNoom.MoYuNovel.Editor",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

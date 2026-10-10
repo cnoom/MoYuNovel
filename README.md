@@ -15,6 +15,6 @@ Unity 编辑器摸鱼插件：让 Console 日志持续『连载』小说内容�
 ## 当前状态
 
 - [x] 工程 + 包骨架初始化
-- [x] spec-kit 接入与项目宪法
+- [x] spec-kit 接入与项目宪法（v2.0.0）
 - [x] feature 001 规格撰写（console 日志连载小说）
-- [ ] 实现与测试（`$speckit-clarify` / `$speckit-plan` / `$speckit-tasks` / `$speckit-implement`）
+- [x] 实现与测试（`$speckit-clarify` / `$speckit-plan` / `$speckit-tasks` / `$speckit-implement`，v0.2.0，EditMode 90/90 通过）

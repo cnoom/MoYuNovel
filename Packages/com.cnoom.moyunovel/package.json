@@ -1,6 +1,6 @@
 {
   "name": "com.cnoom.moyunovel",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "MoYuNovel",
   "description": "摸鱼神器：让 Unity Console 以正常业务日志的口吻持续『连载』小说内容，摸鱼像在查报错。宪法见 .specify/memory/constitution.md。",
   "unity": "2022.3",

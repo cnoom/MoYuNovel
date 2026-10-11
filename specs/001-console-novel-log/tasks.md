@@ -198,6 +198,11 @@ description: "feature 001 任务清单（speckit-tasks 生成）"
   网络代码/急停/静默/清除入口），结论记入 feature 收尾说明
 - [x] T029 全量 EditMode 测试通过（Unity Test Runner）+ quickstart.md V1–V5
   人工验证（V6 构建隔离视条件执行）
+- [x] T030 [Polish] FR-002 验收收尾：设置窗口新增「急停快捷键」区块（改键
+  录制 + 恢复默认）；新增 `ED/Settings/PanicKeyBinding.cs` 封装 ShortcutManager
+  改绑 / 冲突拒绝 / 恢复默认（Esc 无法注册为绑定，备用急停保持硬编码，
+  research R1）；`TS/EditMode/PanicKeyBindingTests.cs` 覆盖默认键位、
+  改绑生效、冲突拒绝、恢复默认
 
 ---
 

@@ -4,6 +4,7 @@ using CNoom.MoYuNovel.Editor.Disguise;
 using CNoom.MoYuNovel.Editor.Library;
 using CNoom.MoYuNovel.Editor.Settings;
 using CNoom.MoYuNovel.Editor.Storage;
+using CNoom.MoYuNovel.Editor.Stop;
 using CNoom.MoYuNovel.Runtime.Novel;
 using CNoom.MoYuNovel.Runtime.Output;
 using CNoom.MoYuNovel.Runtime.Progress;
@@ -96,7 +97,7 @@ namespace CNoom.MoYuNovel.Editor.Core
             var shelf = library.Enumerate();
             if (shelf.Count == 0)
             {
-                Debug.LogWarning("[LogReader] 书架为空，无法开始。");
+                Debug.LogWarning(ConsoleCleaner.LogPrefix + " 书架为空，无法开始。");
                 return;
             }
 
@@ -117,7 +118,7 @@ namespace CNoom.MoYuNovel.Editor.Core
             }
             catch (Exception e)
             {
-                Debug.LogWarning("[LogReader] 打开作品失败: " + e.Message);
+                Debug.LogWarning(ConsoleCleaner.LogPrefix + " 打开作品失败: " + e.Message);
             }
         }
 
@@ -177,12 +178,18 @@ namespace CNoom.MoYuNovel.Editor.Core
             ResetToIdle();
         }
 
-        /// <summary>急停（FR-002/SC-002）：立即终止一切待输出，不等待当前间隔到期。</summary>
+        /// <summary>
+        /// 急停（FR-002/SC-002）：立即终止一切待输出，不等待当前间隔到期；
+        /// 开关开启时（默认）随后选择性移除本插件 Console 条目（FR-001 修订，
+        /// research R2/R5 固定顺序：停止 → 进度落盘 → 清理，清理失败不影响
+        /// 前两步且绝不误删业务日志）。非急停路径绝不走到这里。
+        /// </summary>
         internal static void PanicStop()
         {
             var wasActive = state == EngineState.Running || state == EngineState.Paused;
             ResetToIdle();
             if (wasActive) progressStore.Save(); // 已输出行的进度仍有效，续读语义不变
+            if (settings.ClearConsoleOnPanic) ConsoleCleaner.TryClear(settings.MarkerText);
         }
 
         private static void Tick() => TickAt(Clock.ElapsedMilliseconds);

@@ -6,6 +6,7 @@ using CNoom.MoYuNovel.Editor.Library;
 using CNoom.MoYuNovel.Runtime.Novel;
 using CNoom.MoYuNovel.Runtime.Output;
 using UnityEditor;
+using UnityEditor.ShortcutManagement;
 using UnityEngine;
 
 namespace CNoom.MoYuNovel.Editor.Settings
@@ -23,6 +24,7 @@ namespace CNoom.MoYuNovel.Editor.Settings
         private int presetIndex;
         private string markerBuffer;
         private string intervalBuffer;
+        private bool recordingPanicKey;
 
         /// <summary>打开设置窗口。</summary>
         internal static void Open() => GetWindow<MoYuSettingsWindow>(true, "Log Reader", true);
@@ -48,6 +50,8 @@ namespace CNoom.MoYuNovel.Editor.Settings
             DrawInterval();
             EditorGUILayout.Space(8);
             DrawDisguise();
+            EditorGUILayout.Space(8);
+            DrawPanicKey();
         }
 
         private void DrawShelf()
@@ -161,6 +165,93 @@ namespace CNoom.MoYuNovel.Editor.Settings
 
             EditorGUILayout.LabelField("过滤方法", "Console 过滤框输入 \"" + MoYuEngine.Settings.MarkerText
                 + "\" 单独查看本插件输出；输入 -" + MoYuEngine.Settings.MarkerText + " 隐藏之。");
+        }
+
+        private void DrawPanicKey()
+        {
+            EditorGUILayout.LabelField("急停", EditorStyles.boldLabel);
+
+            if (recordingPanicKey)
+            {
+                EditorGUILayout.HelpBox("按下新的组合键…（Esc 取消录制；Esc 无法设为主急停键）", MessageType.Warning);
+                HandlePanicKeyRecording();
+            }
+            else
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("主急停键", PanicKeyBinding.Describe());
+                    GUI.enabled = PanicKeyBinding.ProfileWritable;
+                    if (GUILayout.Button("改键…", GUILayout.Width(64))) recordingPanicKey = true;
+                    if (GUILayout.Button("恢复默认", GUILayout.Width(80))) PanicKeyBinding.ResetToDefault();
+                    GUI.enabled = true;
+                }
+                if (!PanicKeyBinding.ProfileWritable)
+                    EditorGUILayout.HelpBox("当前快捷键 Profile 为只读，改键不可用。", MessageType.Warning);
+
+                EditorGUI.BeginChangeCheck();
+                bool clearOnPanic = EditorGUILayout.Toggle("急停时清空 Console", MoYuEngine.Settings.ClearConsoleOnPanic);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    MoYuEngine.Settings.SetClearConsoleOnPanic(clearOnPanic);
+                    MoYuEngine.Settings.Save();
+                }
+
+                EditorGUILayout.HelpBox("输出运行期间按 Esc 也可急停（尽力拦截，不消费事件）。"
+                    + (MoYuEngine.Settings.ClearConsoleOnPanic ? "" : "当前急停仅停止输出，不清空 Console。"),
+                    MessageType.None);
+            }
+        }
+
+        // 录制态：捕获本窗口内的 KeyDown；纯修饰键按下视为尚未按完，继续等待
+        private void HandlePanicKeyRecording()
+        {
+            var evt = Event.current;
+            if (evt == null || evt.type != EventType.KeyDown) return;
+
+            if (evt.keyCode == KeyCode.Escape)
+            {
+                recordingPanicKey = false;
+                evt.Use();
+            }
+            else if (evt.keyCode != KeyCode.None && !IsModifierKey(evt.keyCode))
+            {
+                recordingPanicKey = false;
+                if (PanicKeyBinding.TryRebind(evt.keyCode, ModifiersOf(evt), out var error))
+                    ShowNotification(new GUIContent("急停键已更新"));
+                else
+                    EditorUtility.DisplayDialog("改键失败", error, "确定");
+                evt.Use();
+            }
+        }
+
+        private static bool IsModifierKey(KeyCode key)
+        {
+            switch (key)
+            {
+                case KeyCode.LeftControl:
+                case KeyCode.RightControl:
+                case KeyCode.LeftShift:
+                case KeyCode.RightShift:
+                case KeyCode.LeftAlt:
+                case KeyCode.RightAlt:
+                case KeyCode.LeftCommand:
+                case KeyCode.RightCommand:
+                case KeyCode.LeftWindows:
+                case KeyCode.RightWindows:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        // 6000.3 起 ShortcutModifiers.Action 即跨平台主修饰键（Windows=Ctrl，macOS=Cmd）
+        private static ShortcutModifiers ModifiersOf(Event evt)
+        {
+            return (evt.alt ? ShortcutModifiers.Alt : (ShortcutModifiers)0)
+                | (evt.control ? ShortcutModifiers.Control : (ShortcutModifiers)0)
+                | (evt.shift ? ShortcutModifiers.Shift : (ShortcutModifiers)0)
+                | (evt.command ? ShortcutModifiers.Action : (ShortcutModifiers)0);
         }
 
         private static string DescribeState(MoYuEngine.EngineState state)

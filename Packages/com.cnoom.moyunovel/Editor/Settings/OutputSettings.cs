@@ -14,6 +14,7 @@ namespace CNoom.MoYuNovel.Editor.Settings
         public string activeNovelId = string.Empty;
         public string disguisePresetId = "net";
         public string markerText = DisguiseFormatter.DefaultMarker;
+        public bool clearConsoleOnPanic = true;
     }
 
     /// <summary>
@@ -37,6 +38,9 @@ namespace CNoom.MoYuNovel.Editor.Settings
         /// <summary>统一过滤标记。</summary>
         internal string MarkerText => data.markerText;
 
+        /// <summary>急停时是否清空 Console（缺字段视为 true，data-model 约束）。</summary>
+        internal bool ClearConsoleOnPanic => data.clearConsoleOnPanic;
+
         /// <summary>设置间隔（自动钳制到 [0.2, 3600]）。</summary>
         internal void SetInterval(float seconds) => data.intervalSeconds = IntervalPolicy.Clamp(seconds);
 
@@ -54,6 +58,9 @@ namespace CNoom.MoYuNovel.Editor.Settings
             if (marker.Length > 8) marker = marker.Substring(0, 8);
             data.markerText = marker;
         }
+
+        /// <summary>设置急停是否清空 Console（FR-007 开关）。</summary>
+        internal void SetClearConsoleOnPanic(bool value) => data.clearConsoleOnPanic = value;
 
         /// <summary>恢复全部配置默认值（进度由 ProgressStore 单独管理，不受影响）。</summary>
         internal void ResetToDefaults() => data = new OutputSettingsData();

@@ -76,4 +76,4 @@ Tools/Log Reader/
 
 ## 许可
 
-暂未附带开源许可证（保留所有权利）。如需引用或二次分发请先开 issue 沟通。
+[MIT](LICENSE) © 2026 cnoom

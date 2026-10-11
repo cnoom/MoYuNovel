@@ -102,19 +102,22 @@ Console 清空）
   —— 自动化部分已完成：**104/104 全绿**（TestResults/002-final.xml，基线
   95 + 新增 9，0 失败 0 跳过）；期间实测修正 research R1——batchmode 下
   `Debug.ClearDeveloperConsole()` 静默 no-op，主备调换为反射 LogEntries.Clear
-  优先（详见 research.md/plan.md 修订）。剩 quickstart V1–V5 编辑器内人工
+  优先（详见 research.md/plan.md 修订）。剩 quickstart V1–V6 编辑器内人工
   验证（需交互式 Unity 会话，实现代理无法代按快捷键）
-- [ ] T012 [Polish] FR-002 修订（仅移除本插件行）：`ConsoleCleaner` 重写为
+- [x] T012 [Polish] FR-002 修订（仅移除本插件行）：`ConsoleCleaner` 重写为
   选择性移除——反射 `LogEntries` 快照（GetEntryInternal）→ Clear 清表 →
   AddMessageWithDoubleClickCallback 回灌保留条目，`TryClear(marker)` 签名
   变更、引擎传入 `settings.MarkerText`；识别规则 `[<marker>]` token 或
   `[LogReader]` 前缀；解析失败/过滤态静默跳过，绝不回退全量清空（research
   R5，Cecil 反查 6000.3 API 面）；`[LogReader]` 前缀提取为共享常量
-- [ ] T013 [Polish] 测试同步：`ConsoleCleanerTests` 改为"插件行移除 + 业务
+- [x] T013 [Polish] 测试同步：`ConsoleCleanerTests` 改为"插件行移除 + 业务
   日志内容/顺序/类型保留"断言 + `IsPluginEntry` 判定单测 + 降级吞异常；
   `PanicClearWiringTests` 替身适配 `Func<string,bool>` 签名
-- [ ] T014 [Polish] 全量回归（batchmode）确认无回归且新用例全绿；
-  spec/plan/research/contracts/quickstart/CHANGELOG 修订回写
+- [x] T014 [Polish] 全量回归（batchmode）确认无回归且新用例全绿——**105/105**
+  （TestResults/002-selective.xml，含选择性移除核心用例：插件行移除、业务
+  日志内容/顺序/mode 保留）；spec/plan/research/contracts/quickstart/CHANGELOG
+  修订回写完成。测试断言按语义（条目内容/顺序/类型）编写，不对 Console 总数
+  做精确断言（batchmode 框架日志随时插入，总数不可预测）
 
 ---
 

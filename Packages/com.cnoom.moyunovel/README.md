@@ -44,4 +44,4 @@ Unity.exe -batchmode -projectPath <工程> -runTests -testPlatform EditMode -nog
 
 ## 许可
 
-未附带开源许可证（保留所有权利）。
+[MIT](../../../LICENSE)

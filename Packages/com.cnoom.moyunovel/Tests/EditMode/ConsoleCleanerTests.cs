@@ -10,7 +10,8 @@ namespace CNoom.MoYuNovel.Tests
     /// <summary>
     /// Console 选择性清理测试（FR-002 修订，research R4-1/R5）：仅移除插件行、
     /// 业务日志内容与相对顺序保留、日志类型不串、降级不抛。
-    /// Console 日志表为惰性刷入：断言前先轮询等条目落表，避免清空-落表竞态。
+    /// 断言全部基于语义（条目内容/顺序/类型），不对 Console 总条数做精确断言——
+    /// batchmode 下测试框架自身日志会随时插入，总数天然不可预测。
     /// </summary>
     public class ConsoleCleanerTests
     {
@@ -24,19 +25,29 @@ namespace CNoom.MoYuNovel.Tests
             Debug.LogWarning("业务警告: 保留我 B");
             Debug.Log("[NetModule][nv] 小说第一行正文");
             Debug.Log("[LogReader] 书架为空，无法开始。");
-            Assert.IsTrue(WaitForCount(count => count >= 4, 3000),
-                "四条日志应在 3 秒内进入 Console 日志表（惰性刷入）");
+
+            // 等我们的四条全部落表（避免清理后晚刷入造成误判），不关心框架杂条
+            Assert.IsTrue(WaitUntil(entries => Contains(entries, "保留我 A")
+                && Contains(entries, "保留我 B")
+                && Contains(entries, "小说第一行正文")
+                && Contains(entries, "书架为空，无法开始。"), 3000), "四条测试日志应落表");
 
             Assert.IsTrue(Editor.Stop.ConsoleCleaner.TryClear("nv"), "选择性清理在当前编辑器应可用");
 
-            Assert.IsTrue(WaitForCount(count => count == 2, 3000),
-                "急停后 MUST 仅剩两条业务日志（SC-001 本插件条目数为 0）");
+            // 清理后：业务两条保留、插件条目为 0；框架日志可能继续插入，均不参与断言
+            Assert.IsTrue(WaitUntil(entries => Contains(entries, "保留我 A")
+                && Contains(entries, "保留我 B")
+                && !HasPluginEntry(entries), 3000),
+                "急停后业务日志 MUST 保留且本插件条目数为 0（SC-001/SC-002）");
 
             var remaining = ReadAllEntries();
-            Assert.AreEqual(2, remaining.Count);
-            Assert.IsTrue(remaining[0].message.Contains("保留我 A"), "业务日志内容保留且相对顺序不变");
-            Assert.IsTrue(remaining[1].message.Contains("保留我 B"), "业务日志内容保留且相对顺序不变");
-            Assert.AreNotEqual(remaining[0].mode, remaining[1].mode, "Log/Warning 类型 MUST 不串（mode 复制保真）");
+            int indexA = remaining.FindIndex(e => e.message.Contains("保留我 A"));
+            int indexB = remaining.FindIndex(e => e.message.Contains("保留我 B"));
+            Assert.GreaterOrEqual(indexA, 0);
+            Assert.GreaterOrEqual(indexB, 0);
+            Assert.Less(indexA, indexB, "业务日志相对顺序 MUST 不变");
+            Assert.AreNotEqual(remaining[indexA].mode, remaining[indexB].mode,
+                "Log/Warning 类型 MUST 不串（mode 复制保真）");
         }
 
         [Test]
@@ -60,16 +71,21 @@ namespace CNoom.MoYuNovel.Tests
             Assert.IsFalse(result);
         }
 
-        /// <summary>轮询 Console 条目数直至满足条件；反射不可用视为永不满足（测试降级失败并给出理由）。</summary>
-        private static bool WaitForCount(Func<int, bool> predicate, int timeoutMs)
+        private static bool Contains(List<(string message, int mode)> entries, string text)
+            => entries.FindIndex(e => e.message != null && e.message.Contains(text)) >= 0;
+
+        private static bool HasPluginEntry(List<(string message, int mode)> entries)
+            => entries.FindIndex(e => e.message != null
+                && (e.message.Contains("[nv]") || e.message.StartsWith("[LogReader]", StringComparison.Ordinal))) >= 0;
+
+        /// <summary>轮询条目表直至条件满足；超时返回 false（调用方转储诊断）。</summary>
+        private static bool WaitUntil(Func<List<(string message, int mode)>, bool> predicate, int timeoutMs)
         {
             var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
             while (DateTime.UtcNow < deadline)
             {
-                var entries = ReadAllEntries();
-                if (entries.Count > 0 && predicate(entries.Count)) return true;
-                if (entries.Count == 0 && predicate(0)) return true;
-                Thread.Sleep(25);
+                if (predicate(ReadAllEntries())) return true;
+                Thread.Sleep(50);
             }
             return false;
         }

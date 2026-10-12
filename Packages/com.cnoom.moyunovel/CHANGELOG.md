@@ -2,6 +2,11 @@
 
 本包遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循 SemVer。
 
+## [0.3.1] - 2026-10-12
+
+### Fixed
+- 修复通过 git 安装本包时编译失败（CS0234/CS0246：`CNoom.MoYuNovel.Editor.Library` 命名空间与 `NovelLibrary` / `ShelfItem` / `ProgressStore` 类型缺失）：根 .gitignore 中未锚定的 `[Ll]ibrary/` 规则把包内 `Editor/Library/` 源码排除在版本控制外，git 安装拿不到这两个文件。现已将 Unity 生成物目录全部锚定到仓库根目录，并把 `Editor/Library/`（NovelLibrary.cs、ProgressStore.cs）纳入版本控制。
+
 ## [0.3.0] - 2026-10-11
 
 ### Added

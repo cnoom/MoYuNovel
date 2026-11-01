@@ -51,7 +51,7 @@ Tools/Log Reader/
 
 ## 开发
 
-- Unity **6000.3.26f1** 开发（包最低兼容 `unity: 2022.3`），零第三方依赖
+- Unity **6000.3.27f1** 开发（包最低兼容 `unity: 2022.3`），零第三方依赖
 - 全量测试（batchmode）：
 
   ```bash
